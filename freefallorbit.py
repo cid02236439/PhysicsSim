@@ -52,6 +52,7 @@ class object:
 
 sun = object(1.989e30, 30, np.array([0, 0]))
 jupiter = object(1.898e27, 25, np.array([7.785e11, 0]), np.array([0, 13070]))
+earth = object(5.972e24, 10, np.array([1.496e11, 0]), np.array([0, 29780]))
 
 def main():
     run = True
@@ -65,13 +66,17 @@ def main():
         
         
         sun.update_position(jupiter)
+        sun.update_position(earth)
         jupiter.update_position(sun)
+        earth.update_position(sun)
 
         jupiter.draw(window)
         sun.draw(window)
+        earth.draw(window)
 
         plt.plot(jupiter.position[0], jupiter.position[1], 'o', color = 'blue')
         plt.plot(sun.position[0], sun.position[1], 'o', color = 'yellow')
+        plt.plot(earth.position[0], earth.position[1], 'o', color = 'green')
         
 
         pygame.display.flip()
@@ -79,10 +84,12 @@ def main():
     pygame.quit()
 
 main()
-#-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-
+#-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-=-
     
-print("Earth's gravitational acceleration towards Sun:", jupiter.gravitational_acceleration(sun))
-print("Sun's gravitational acceleration towards Earth:", sun.gravitational_acceleration(jupiter))
+print("jupiter's's gravitational acceleration towards Sun:", jupiter.gravitational_acceleration(sun))
+#print("Sun's gravitational acceleration towards Jupiter:", sun.gravitational_acceleration(jupiter))
+print('earth\'s gravitational acceleration towards Sun:', earth.gravitational_acceleration(sun))
+
 print('COM', jupiter.centreofmass(sun))
 print('COM', sun.centreofmass(jupiter))
 plt.show()

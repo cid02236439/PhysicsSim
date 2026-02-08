@@ -11,7 +11,7 @@ centre = np.array([width/2, height/2])
 
 G = 6.67430e-11
 
-def centreofmass(list):
+def centreofmass(list): # DO I EVEN NEED THIS?
     total_mass = sum(obj.mass for obj in list)
     if total_mass == 0:
         return np.array([0, 0]) # avoid division by zero
@@ -34,7 +34,7 @@ class object:
         position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
         pygame.draw.circle(window, self.colour, position, int(self.radius))
 
-    def gravitational_acceleration(self, other):
+    def gravitational_acceleration(self, other): #CHANGE THIS SO IT INCLUDES ALL OBJECTS INSTEAD OF JUST ONE
         r_vector = (other.position - self.position)
         r_magnitude = np.linalg.norm(r_vector)
 

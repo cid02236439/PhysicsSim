@@ -3,13 +3,18 @@ import matplotlib.pyplot as plt
 import pygame
 pygame.init()
 
+#=-=-=-=-=-=-=-=-=-=window setup-=-=-=-=-=-=-=-=-=-=-=-=-
 
 width, height = 1200, 800
 window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("gravity simulation")
 centre = np.array([width/2, height/2])
 
+#=-=-=-=-=-=-=-=-=-=-=constants-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 G = 6.67430e-11
+
+#-=-=-=-=-=-=-=-=-general functions-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def centreofmass(list): # DO I EVEN NEED THIS?
     total_mass = sum(obj.mass for obj in list)
@@ -17,7 +22,7 @@ def centreofmass(list): # DO I EVEN NEED THIS?
         return np.array([0, 0]) # avoid division by zero
     return sum(obj.mass * obj.position for obj in list) / total_mass
 
-#-=-=-=-=-=-=-=-=-object class-=-=-=-=-=-=-=-=-=-=-=-=-
+#-=-=-=-=-=-=-=-=-object class-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 class object:
      
     scale = 250 / (5 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
@@ -44,7 +49,7 @@ class object:
         force_magnitude = G * self.mass * other.mass / r_magnitude**2
         force_direction = r_vector / r_magnitude
 
-        return force_magnitude * force_direction / self.mass # F = ma => a = F/m
+        return force_magnitude * force_direction / self.mass 
     
     def update_position(self, other, dt = 60*60*24*12):
         self.acceleration = self.gravitational_acceleration(other)
@@ -96,4 +101,7 @@ print("jupiter's's gravitational acceleration towards Sun:", jupiter.gravitation
 print('earth\'s gravitational acceleration towards Sun:', earth.gravitational_acceleration(sun))
 
 print('centre of mass of the system:', centre_of_mass)
+
+plt.xlim(-1e12, 1e12)
+plt.ylim(-1e12, 1e12)
 plt.show()

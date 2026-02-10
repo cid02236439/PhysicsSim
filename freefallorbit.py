@@ -25,7 +25,7 @@ def centreofmass(list): # DO I EVEN NEED THIS?
 #-=-=-=-=-=-=-=-=-object class-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 class object:
      
-    scale = 250 / (2 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
+    scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
 
     def __init__(self, mass, radius, position = np.array([0, 0], dtype = float), velocity = np.array([0, 0], dtype = float), colour = (255, 255, 255)):
         self.mass = mass
@@ -61,7 +61,13 @@ class object:
         self.acceleration = self.gravitational_acceleration(others)
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
-    
+
+def draw_grid(surface, color, width, height, cell_size):
+    for x in range(0, width, cell_size):
+        pygame.draw.line(surface, color, (x, 0), (x, height))
+    for y in range(0, height, cell_size):
+        pygame.draw.line(surface, color, (0, y), (width, y))
+
     
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -82,7 +88,7 @@ sun3 = object(1.989e30, 30, [-1e12 , 0], [0, -10000])
 sun4 = object(1.989e30, 30, [1e12 , 0], [0, 10000])
 
 #objects = [sun1, sun2, sun3, sun4]
-objects = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
+objects = [sun, mercury, venus, earth, mars]
 
 def main():
     run = True
@@ -94,6 +100,8 @@ def main():
                 run = False
         
         window.fill((0, 0, 0))
+
+        draw_grid(window, (80, 80, 80), width, height, 20)
 
         centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre
         

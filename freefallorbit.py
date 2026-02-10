@@ -25,7 +25,7 @@ def centreofmass(list): # DO I EVEN NEED THIS?
 #-=-=-=-=-=-=-=-=-object class-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 class object:
      
-    scale = 250 / (5 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
+    scale = 250 / (2 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
 
     def __init__(self, mass, radius, position = np.array([0, 0], dtype = float), velocity = np.array([0, 0], dtype = float), colour = (255, 255, 255)):
         self.mass = mass
@@ -37,32 +37,52 @@ class object:
 
     def draw(self, window):
         position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
+
         pygame.draw.circle(window, self.colour, position, int(self.radius))
-
-    def gravitational_acceleration(self, other): #CHANGE THIS SO IT INCLUDES ALL OBJECTS INSTEAD OF JUST ONE
-        r_vector = (other.position - self.position)
-        r_magnitude = np.linalg.norm(r_vector)
-
-        if r_magnitude == 0:
-            return np.array([0, 0]) # avoid division by zero
-        
-        force_magnitude = G * self.mass * other.mass / r_magnitude**2
-        force_direction = r_vector / r_magnitude
-
-        return force_magnitude * force_direction / self.mass 
     
-    def update_position(self, other, dt = 60*60*24*12):
-        self.acceleration = self.gravitational_acceleration(other)
-        self.velocity += np.array(self.acceleration * dt, dtype = float)
-        self.position += np.array(self.velocity * dt, dtype = float)
+    def gravitational_acceleration(self, others):
+        acceleration = np.array([0, 0], dtype = float)
+        for other in others:
+            if other is self:
+                continue
+            r_vector = (other.position - self.position)
+            r_magnitude = np.linalg.norm(r_vector)
+
+            if r_magnitude == 0:
+                continue # avoid division by zero
+            
+            force_magnitude = G * self.mass * other.mass / r_magnitude**2
+            force_direction = r_vector / r_magnitude
+
+            acceleration += force_magnitude * force_direction / self.mass
+        return acceleration
+    
+    def update_position(self, others, dt = 60*60*24):
+        self.acceleration = self.gravitational_acceleration(others)
+        self.velocity += self.acceleration * dt
+        self.position += self.velocity * dt
     
     
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
 
-sun = object(1.989e30, 30, np.array([0, 0]))
-jupiter = object(1.898e27, 20, np.array([7.785e11, 0]), np.array([0, 13070]))
+sun = object(1.989e30, 0, np.array([0, 0]))
+mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
+venus = object(4.867e24, 8, np.array([1.082e11, 0]), np.array([0, 35020]))
 earth = object(5.972e24, 10, np.array([1.496e11, 0]), np.array([0, 29780]))
-centre_of_mass = centreofmass([sun, jupiter, earth])
+mars = object(6.39e23, 7, np.array([2.279e11, 0]), np.array([0, 24070]))
+jupiter = object(1.898e27, 20, np.array([7.785e11, 0]), np.array([0, 13070]))
+saturn = object(5.683e26, 18, np.array([1.433e12, 0]), np.array([0, 9600]))
+uranus = object(8.681e25, 15, np.array([2.877e12, 0]), np.array([0, 6800]))
+neptune = object(1.024e26, 15, np.array([4.503e12, 0]), np.array([0, 5400]))
+
+
+sun1 = object(1.989e30, 30, [0, -1e12], [10000,0])
+sun2 = object(1.989e30, 30, [0, 1e12], [-10000,0])
+sun3 = object(1.989e30, 30, [-1e12 , 0], [0, -10000])
+sun4 = object(1.989e30, 30, [1e12 , 0], [0, 10000])
+
+#objects = [sun1, sun2, sun3, sun4]
+objects = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
 
 def main():
     run = True
@@ -72,22 +92,17 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+        
         window.fill((0, 0, 0))
+
+        centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre
         
+        for object in objects:
+            object.update_position(objects)
+            object.draw(window)
+            plt.plot(object.position[0], object.position[1], '.', color = 'r')
         
-        sun.update_position(jupiter)
-        jupiter.update_position(sun)
-        earth.update_position(sun)
-        
-        
-        jupiter.draw(window)
-        sun.draw(window)
-        earth.draw(window)
-        
-        plt.plot(jupiter.position[0], jupiter.position[1], 'o', color = 'blue')
-        plt.plot(sun.position[0], sun.position[1], 'o', color = 'yellow')
-        plt.plot(earth.position[0], earth.position[1], 'o', color = 'green')
-        
+        pygame.draw.circle(window,(255, 255, 255), centre_of_mass ,  5,1)
 
         pygame.display.flip()
 
@@ -95,13 +110,7 @@ def main():
 
 main()
 #-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    
-print("jupiter's's gravitational acceleration towards Sun:", jupiter.gravitational_acceleration(sun))
-#print("Sun's gravitational acceleration towards Jupiter:", sun.gravitational_acceleration(jupiter))
-print('earth\'s gravitational acceleration towards Sun:', earth.gravitational_acceleration(sun))
 
-print('centre of mass of the system:', centre_of_mass)
 
-plt.xlim(-1e12, 1e12)
-plt.ylim(-1e12, 1e12)
+plt.axis('equal')
 plt.show()

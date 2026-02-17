@@ -72,18 +72,17 @@ class object:
 #         pygame.draw.line(surface, color, (0, y), (width, y))
 
 class space_time:
-    def __init__(self, unit_size):
-        self.points = []
+    def __init__(self, unit_size = 20):
         self.unit_size = unit_size
+        x = np.arange(0, width, self.unit_size)
+        y = np.arange(0, height, self.unit_size)
 
-    def draw(self, window, colour, width, height):
-        points = []
-        for x in range(0, width, self.unit_size):
-            for y in range(0, height, self.unit_size):
-                points.append((x, y))
-        for point in points:
-            pygame.draw.circle(window, colour, point, 1)
-            #pygame.draw.line(window, colour, point)
+        self.x, self.y = np.meshgrid(x, y)
+        self.points = np.column_stack((self.x.flatten(), self.y.flatten()))
+        
+    def draw(self, window):
+        for points in self.points:
+            pygame.draw.circle(window, (100, 100, 100), (int(points[0]), int(points[1])), 1)
 
 class photon:
 
@@ -101,10 +100,10 @@ class photon:
         position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
         pygame.draw.circle(window, (255,0,0), position, 5)
 
-    
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
 
-spacetime = space_time(20)
+spacetime = space_time()
+
 
 sun = object(1.989e30, 0, np.array([0, 0]))
 mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
@@ -140,7 +139,8 @@ def main():
         window.fill((0, 0, 0))
 
         #draw_grid(window, (80, 80, 80), width, height, 20)
-        spacetime.draw(window, (80, 80, 80), width, height)
+        spacetime.draw(window)
+
         photon1.draw(window)
         plt.plot(photon1.position[0], photon1.position[1], '.', color = 'r')
         centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre

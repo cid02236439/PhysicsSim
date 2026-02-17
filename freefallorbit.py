@@ -34,11 +34,6 @@ class object:
         self.velocity = np.array(velocity, dtype = float)
         self.colour = colour
         self.acceleration = np.array([0, 0], dtype = float)
-
-    def draw(self, window):
-        position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
-
-        pygame.draw.circle(window, self.colour, position, int(self.radius))
     
     def gravitational_acceleration(self, others):
         acceleration = np.array([0, 0], dtype = float)
@@ -62,14 +57,54 @@ class object:
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
 
-def draw_grid(surface, color, width, height, cell_size):
-    for x in range(0, width, cell_size):
-        pygame.draw.line(surface, color, (x, 0), (x, height))
-    for y in range(0, height, cell_size):
-        pygame.draw.line(surface, color, (0, y), (width, y))
+    def draw(self, window):
+        position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
+        pygame.draw.circle(window, self.colour, position, int(self.radius))
+
+    def bending(self):
+        
+        pass
+
+# def draw_grid(surface, color, width, height, cell_size):
+#     for x in range(0, width, cell_size):
+#         pygame.draw.line(surface, color, (x, 0), (x, height))
+#     for y in range(0, height, cell_size):
+#         pygame.draw.line(surface, color, (0, y), (width, y))
+
+class space_time:
+    def __init__(self, unit_size):
+        self.points = []
+        self.unit_size = unit_size
+
+    def draw(self, window, colour, width, height):
+        points = []
+        for x in range(0, width, self.unit_size):
+            for y in range(0, height, self.unit_size):
+                points.append((x, y))
+        for point in points:
+            pygame.draw.circle(window, colour, point, 1)
+            #pygame.draw.line(window, colour, point)
+
+class photon:
+
+    scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
+
+    def __init__(self, position = np.array([-2e11,-2e11], dtype = float), direction = np.array([1,1], dtype = float)):
+        self.position = np.array(position, dtype= float)
+        self.direction = np.array(direction, dtype = float)
+
+        norm = np.linalg.norm(self.direction)
+        self.velocity = 50000 * np.array(self.direction/norm)
+    
+    def draw(self, window, dt = 60*60*24):
+        self.position += self.velocity * dt
+        position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
+        pygame.draw.circle(window, (255,0,0), position, 5)
 
     
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
+
+spacetime = space_time(20)
 
 sun = object(1.989e30, 0, np.array([0, 0]))
 mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
@@ -87,8 +122,11 @@ sun2 = object(1.989e30, 30, [0, 1e12], [-10000,0])
 sun3 = object(1.989e30, 30, [-1e12 , 0], [0, -10000])
 sun4 = object(1.989e30, 30, [1e12 , 0], [0, 10000])
 
+photon1 = photon()
+
 #objects = [sun1, sun2, sun3, sun4]
 objects = [sun, mercury, venus, earth, mars]
+
 
 def main():
     run = True
@@ -101,14 +139,16 @@ def main():
         
         window.fill((0, 0, 0))
 
-        draw_grid(window, (80, 80, 80), width, height, 20)
-
+        #draw_grid(window, (80, 80, 80), width, height, 20)
+        spacetime.draw(window, (80, 80, 80), width, height)
+        photon1.draw(window)
+        plt.plot(photon1.position[0], photon1.position[1], '.', color = 'r')
         centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre
         
         for object in objects:
             object.update_position(objects)
             object.draw(window)
-            plt.plot(object.position[0], object.position[1], '.', color = 'r')
+            plt.plot(object.position[0], object.position[1], '.', color = 'b')
         
         pygame.draw.circle(window,(255, 255, 255), centre_of_mass ,  5,1)
 

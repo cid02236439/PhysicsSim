@@ -61,10 +61,6 @@ class object:
         position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
         pygame.draw.circle(window, self.colour, position, int(self.radius))
 
-    def bending(self):
-        
-        pass
-
 # def draw_grid(surface, color, width, height, cell_size):
 #     for x in range(0, width, cell_size):
 #         pygame.draw.line(surface, color, (x, 0), (x, height))
@@ -74,16 +70,26 @@ class object:
 class space_time:
     def __init__(self, unit_size = 20):
         self.unit_size = unit_size
-        x = np.arange(0, width, self.unit_size)
-        y = np.arange(0, height, self.unit_size)
 
-        self.x, self.y = np.meshgrid(x, y)
+        X = np.arange(0, width + self.unit_size, self.unit_size)
+        Y = np.arange(0, height + self.unit_size , self.unit_size)
+
+        self.x, self.y = np.meshgrid(X, Y)
         self.points = np.column_stack((self.x.flatten(), self.y.flatten()))
         
+        
     def draw(self, window):
-        for points in self.points:
-            pygame.draw.circle(window, (100, 100, 100), (int(points[0]), int(points[1])), 1)
+        # for i in range(len(self.points)):
+        #     pygame.draw.circle(window, (80,80,80), self.points[i], 1)
+        
+        for i in range(self.x.shape[0]-1):
+            for j in range(self.x.shape[1]-1):
+                pygame.draw.line(window, (80,80,80), (self.x[i][j], self.y[i][j]), (self.x[i+1][j],self.y[i+1][j])) # x
+                pygame.draw.line(window, (80,80,80), (self.x[i][j], self.y[i][j]), (self.x[i][j+1],self.y[i][j+1])) # y
 
+    def bending(self, objects):
+        pass
+            
 class photon:
 
     scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
@@ -103,7 +109,8 @@ class photon:
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
 
 spacetime = space_time()
-
+print(spacetime.x, spacetime.y)
+print(spacetime.x.shape, spacetime.y.shape)
 
 sun = object(1.989e30, 0, np.array([0, 0]))
 mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
@@ -130,6 +137,7 @@ objects = [sun, mercury, venus, earth, mars]
 def main():
     run = True
     clock = pygame.time.Clock()
+
     while run:
         clock.tick(30)
         for event in pygame.event.get():
@@ -138,27 +146,25 @@ def main():
         
         window.fill((0, 0, 0))
 
-        #draw_grid(window, (80, 80, 80), width, height, 20)
         spacetime.draw(window)
 
         photon1.draw(window)
         plt.plot(photon1.position[0], photon1.position[1], '.', color = 'r')
+
         centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre
+        pygame.draw.circle(window,(255, 255, 255), centre_of_mass ,  5,1)
         
         for object in objects:
             object.update_position(objects)
             object.draw(window)
             plt.plot(object.position[0], object.position[1], '.', color = 'b')
         
-        pygame.draw.circle(window,(255, 255, 255), centre_of_mass ,  5,1)
-
         pygame.display.flip()
 
     pygame.quit()
 
 main()
 #-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 plt.axis('equal')
 plt.show()

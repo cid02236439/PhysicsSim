@@ -13,6 +13,7 @@ centre = np.array([width/2, height/2])
 #=-=-=-=-=-=-=-=-=-=-=constants-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 G = 6.67430e-11
+scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
 
 #-=-=-=-=-=-=-=-=-general functions-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -52,13 +53,13 @@ class object:
             acceleration += force_magnitude * force_direction / self.mass
         return acceleration
     
-    def update_position(self, others, dt = 60*60*24):
+    def update_position(self, others, dt = 1*60*60*24):
         self.acceleration = self.gravitational_acceleration(others)
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
 
     def draw(self, window):
-        position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
+        position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
         pygame.draw.circle(window, self.colour, position, int(self.radius))
 
 # def draw_grid(surface, color, width, height, cell_size):
@@ -101,9 +102,9 @@ class photon:
         norm = np.linalg.norm(self.direction)
         self.velocity = 50000 * np.array(self.direction/norm)
     
-    def draw(self, window, dt = 60*60*24):
+    def draw(self, window, dt = 1*60*60*24):
         self.position += self.velocity * dt
-        position = (int(self.position[0] * self.scale + centre[0]), int((self.position[1]) * self.scale + centre[1]))
+        position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
         pygame.draw.circle(window, (255,0,0), position, 5)
 
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
@@ -115,13 +116,13 @@ print(spacetime.x.shape, spacetime.y.shape)
 sun = object(1.989e30, 0, np.array([0, 0]))
 mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
 venus = object(4.867e24, 8, np.array([1.082e11, 0]), np.array([0, 35020]))
-earth = object(5.972e24, 10, np.array([1.496e11, 0]), np.array([0, 29780]))
+earth = object(5.972e24, 1, np.array([1.496e11, 0]), np.array([0, 29780]))
 mars = object(6.39e23, 7, np.array([2.279e11, 0]), np.array([0, 24070]))
 jupiter = object(1.898e27, 20, np.array([7.785e11, 0]), np.array([0, 13070]))
 saturn = object(5.683e26, 18, np.array([1.433e12, 0]), np.array([0, 9600]))
 uranus = object(8.681e25, 15, np.array([2.877e12, 0]), np.array([0, 6800]))
 neptune = object(1.024e26, 15, np.array([4.503e12, 0]), np.array([0, 5400]))
-
+moon = object(7.342e22, 3, np.array([1.496e11 + 3.844e8, 0]), np.array([0, 29780 + 1022]))
 
 sun1 = object(1.989e30, 30, [0, -1e12], [10000,0])
 sun2 = object(1.989e30, 30, [0, 1e12], [-10000,0])
@@ -132,7 +133,6 @@ photon1 = photon()
 
 #objects = [sun1, sun2, sun3, sun4]
 objects = [sun, mercury, venus, earth, mars]
-
 
 def main():
     run = True
@@ -148,8 +148,8 @@ def main():
 
         spacetime.draw(window)
 
-        photon1.draw(window)
-        plt.plot(photon1.position[0], photon1.position[1], '.', color = 'r')
+        # photon1.draw(window)
+        # plt.plot(photon1.position[0], photon1.position[1], '.', color = 'r')
 
         centre_of_mass = centreofmass(objects) * (250 / (5 * 1.496e11)) + centre
         pygame.draw.circle(window,(255, 255, 255), centre_of_mass ,  5,1)

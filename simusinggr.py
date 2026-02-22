@@ -18,6 +18,15 @@ dt = 1*60*60*24 #timestep for one frame/calculation
 
 #-=-=-=-=-=-=-=-=-=classes=-=-=-=-=-=-=-=-=-=-=-=--=-=-
 
+def wave_2d(coords, t, amplitude=20, wavelength=100, speed=2):
+    x = coords[..., 0]
+    y = coords[..., 1]
+
+    offset = amplitude * np.sin((x+y) / wavelength + t * speed)
+
+    offsets = np.stack((offset, np.zeros(np.shape(offset))), axis=-1)
+    return coords + offsets
+
 class space_time:
     def __init__(self, unit_size = 20):
         self.unit_size = unit_size
@@ -25,23 +34,25 @@ class space_time:
         X = np.arange(0, width + self.unit_size, self.unit_size)
         Y = np.arange(0, height + self.unit_size , self.unit_size)
 
-        self.x, self.y = np.meshgrid(X, Y)
-        self.points = np.column_stack((self.x.flatten(), self.y.flatten()))
+        self.points = np.stack((np.meshgrid(X,Y)), axis =-1)
+        self.base_points = self.points.copy()
         
+        self.t = 0
+        
+    def bend(self):
+        self.t += 0.05
+        self.points = wave_2d(self.base_points, self.t)
         
     def draw(self, window):
-        # for i in range(len(self.points)): #for displaying the actual dots
-        #     pygame.draw.circle(window, (80,80,80), self.points[i], 1)
+        for i in range(self.points.shape[0]):
+            for j in range(self.points.shape[1]):
+                pygame.draw.circle(window, (180,80,80), self.points[i, j], 1)
         
-        for i in range(self.x.shape[0]-1):
-            for j in range(self.x.shape[1]-1):
-                pygame.draw.line(window, (80,80,80), (self.x[i][j], self.y[i][j]), (self.x[i+1][j],self.y[i+1][j])) # x
-                pygame.draw.line(window, (80,80,80), (self.x[i][j], self.y[i][j]), (self.x[i][j+1],self.y[i][j+1])) # y
-
-    def bending(self, objects):
-        for object in objects:
-            i = 0
-        pass
+        for i in range(self.points.shape[0] - 1):
+            for j in range(self.points.shape[1] - 1):
+                pygame.draw.line(window, (80,80,80), self.points[i,j], self.points[i, j+1])
+                pygame.draw.line(window, (80,80,80), self.points[i,j], self.points[i+1, j])
+    
 
 class object:
     def __init__(self, mass, radius, position = np.array([0, 0], dtype = float), velocity = np.array([0, 0], dtype = float), colour = (255, 255, 255)):
@@ -106,8 +117,10 @@ def main():
                 run = False
         
         window.fill((0, 0, 0))
+        
         photon.draw(window)
 
+        spacetime.bend()
         spacetime.draw(window)
         
         pygame.display.flip()

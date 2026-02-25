@@ -16,44 +16,51 @@ G = 6.67430e-11
 scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
 dt = 1*60*60*24 #timestep for one frame/calculation
 
-#-=-=-=-=-=-=-=-=-=classes=-=-=-=-=-=-=-=-=-=-=-=--=-=-
+#-=--=-=-=-=-=-=-=-functions-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 def wave_2d(coords, t, amplitude=20, wavelength=100, speed=2):
     x = coords[..., 0]
     y = coords[..., 1]
-
+    amplitude /= scale
+    wavelength /= scale
     offset = amplitude * np.sin((x+y) / wavelength + t * speed)
 
-    offsets = np.stack((offset, np.zeros(np.shape(offset))), axis=-1)
+    zeroes = np.zeros(np.shape(offset))
+
+    offsets = np.stack((offset, offset), axis=-1)
     return coords + offsets
 
-class space_time:
+def angle(vector):
+    return np.arctan2(vector[1], vector[0])
+
+#-=-=-=-=-=-=-=-=-=classes=-=-=-=-=-=-=-=-=-=-=-=--=-=-
+
+class space_time: #introduces 4 variables: self.unit_size, self.points, self.base_points, self.t
     def __init__(self, unit_size = 20):
         self.unit_size = unit_size
 
-        X = np.arange(0, width + self.unit_size, self.unit_size)
-        Y = np.arange(0, height + self.unit_size , self.unit_size)
+        X = np.arange(0, width + self.unit_size, self.unit_size) / scale
+        Y = np.arange(0, height + self.unit_size , self.unit_size) / scale
 
         self.points = np.stack((np.meshgrid(X,Y)), axis =-1)
         self.base_points = self.points.copy()
-        
         self.t = 0
         
-    def bend(self):
+    def bend(self): #modifies 2 variable: self.points and self.t
         self.t += 0.05
         self.points = wave_2d(self.base_points, self.t)
         
-    def draw(self, window):
-        for i in range(self.points.shape[0]):
-            for j in range(self.points.shape[1]):
-                pygame.draw.circle(window, (180,80,80), self.points[i, j], 1)
+    def draw(self, window): #does not modify any self variables
+        points = self.points * scale
+        for i in range(points.shape[0]):
+            for j in range(points.shape[1]):
+                pygame.draw.circle(window, (180,80,80), points[i, j], 1)
         
-        for i in range(self.points.shape[0] - 1):
-            for j in range(self.points.shape[1] - 1):
-                pygame.draw.line(window, (80,80,80), self.points[i,j], self.points[i, j+1])
-                pygame.draw.line(window, (80,80,80), self.points[i,j], self.points[i+1, j])
+        for i in range(points.shape[0] - 1):
+            for j in range(points.shape[1] - 1):
+                pygame.draw.line(window, (80,80,80), points[i,j], points[i, j+1])
+                pygame.draw.line(window, (80,80,80), points[i,j], points[i+1, j])
     
-
 class object:
     def __init__(self, mass, radius, position = np.array([0, 0], dtype = float), velocity = np.array([0, 0], dtype = float), colour = (255, 255, 255)):
         self.mass = mass
@@ -89,21 +96,41 @@ class object:
         position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
         pygame.draw.circle(window, self.colour, position, int(self.radius))
             
-class photon:
+class photon: #introduces 3 variables: self.position, self.direction, self.velocity
     def __init__(self, position = np.array([-2e11, -2e11], dtype = float), direction = np.array([1,1], dtype = float)):
         self.position = np.array(position, dtype= float)
         self.direction = np.array(direction, dtype = float)
         norm = np.linalg.norm(self.direction)
         self.velocity = 3e4 * np.array(self.direction/norm)
+        
     
-    def draw(self, window):
+    # def update_position(self, points, unit_size):
+    #     unit_size /= scale
+    #     col = int(self.position[0]//unit_size)# to get the cell of the photon, this gives us the upper left points of the cell.
+    #     row = int(self.position[1]//unit_size)
+
+    #     p1 = points[row, col]       # top-left
+    #     p2 = points[row, col + 1]   # top-right
+    #     p3 = points[row + 1, col]   # bottom-left
+    #     p4 = points[row + 1, col + 1] # bottom-right
+
+    #     gradient = p2 - p1
+    #     difference = angle(self.direction) - angle(gradient)
+    #     theta = np.arctan2(gradient[1], gradient[0]) + difference
+    #     self.direction = np.array([np.cos(theta), np.sin(theta)])
+    #     norm = np.linalg.norm(self.direction)
+    #     self.velocity = 3e4 * np.array(self.direction/norm)
+
+
+    def draw(self, window, points, unit_size):#modifies 1 variable: self.position
+        #self.update_position(points, unit_size)
         self.position += self.velocity * dt
         position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
-        pygame.draw.circle(window, (255,0,0), position, 5)
+        pygame.draw.circle(window, (255,255,255), position, 3)
 
 #-=-=-=-=-=-=-=-=-=-main-=-=-=-=-=-=-=-=-=-=-=-=
 
-spacetime = space_time()
+spacetime = space_time(20)
 photon = photon()
 
 def main():
@@ -118,13 +145,15 @@ def main():
         
         window.fill((0, 0, 0))
         
-        photon.draw(window)
+        photon.draw(window, spacetime.points, spacetime.unit_size)
 
         spacetime.bend()
         spacetime.draw(window)
-        
+        plt.plot(photon.position[0],photon.position[1],'.',color = 'b')
         pygame.display.flip()
 
     pygame.quit()
 
 main()
+
+plt.show()

@@ -168,4 +168,4 @@ main()
 #-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 plt.axis('equal')
-plt.show()
+#plt.show()

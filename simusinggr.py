@@ -52,9 +52,9 @@ class space_time: #introduces 4 variables: self.unit_size, self.points, self.bas
         
     def draw(self, window): #does not modify any self variables
         points = self.points * scale
-        for i in range(points.shape[0]):
-            for j in range(points.shape[1]):
-                pygame.draw.circle(window, (180,80,80), points[i, j], 1)
+        # for i in range(points.shape[0]):
+        #     for j in range(points.shape[1]):
+        #         pygame.draw.circle(window, (180,80,80), points[i, j], 1)
         
         for i in range(points.shape[0] - 1):
             for j in range(points.shape[1] - 1):

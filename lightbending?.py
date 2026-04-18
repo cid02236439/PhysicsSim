@@ -23,3 +23,26 @@ class object:
     def display(self, window):
         position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
         pygame.draw.circle(window, self.colour, position, int(self.radius))
+    
+class photon:
+    def __init__(self, position, direction):
+        pass
+
+
+def main():
+    run = True
+    clock = pygame.time.Clock()
+
+    while run:
+        clock.tick(30)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+        
+        window.fill((0, 0, 0))
+        
+        pygame.display.flip()
+
+    pygame.quit()
+
+main()

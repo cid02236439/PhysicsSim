@@ -70,3 +70,19 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Photon Geodesic Around Supermassive Object")
 plt.show()
+
+
+r_s = 1
+x = np.arange(0,10,0.1)
+y = np.arange(0,2*np.pi, 0.1)
+x,y = np.meshgrid(x,y)
+
+
+z = 2 * np.sqrt(r_s * (x - r_s))
+# plt.plot(x,y)
+# plt.show()
+x,y = x * np.cos(y), x * np.sin(y)
+fig = plt.figure()
+ax = fig.add_subplot(projection = '3d')
+ax.plot_surface(x,y,z)
+plt.show()

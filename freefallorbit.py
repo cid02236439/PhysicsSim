@@ -58,6 +58,7 @@ class object:
         self.acceleration = self.gravitational_acceleration(others)
         self.velocity += self.acceleration * dt
         self.position += self.velocity * dt
+    
 
     def draw(self, window):
         position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
@@ -111,8 +112,8 @@ class photon:
 #-=-=-=-=-=-=-=-=-main program-=-=-=-=-=-=-=-=-=-=-=-=
 
 spacetime = space_time()
-print(spacetime.x, spacetime.y)
-print(spacetime.x.shape, spacetime.y.shape)
+# print(spacetime.x, spacetime.y)
+# print(spacetime.x.shape, spacetime.y.shape)
 
 sun = object(1.989e30, 0, np.array([0, 0]))
 mercury = object(3.285e23, 5, np.array([5.79e10, 0]), np.array([0, 47870]))
@@ -133,7 +134,7 @@ sun4 = object(1.989e30, 30, [1e12 , 0], [0, 10000])
 photon1 = photon()
 
 #objects = [sun1, sun2, sun3, sun4]
-objects = [sun, mercury, venus, earth, mars]
+objects = [sun, mercury, venus, earth, mars,moon]
 
 def main():
     run = True
@@ -168,4 +169,4 @@ main()
 #-=-=-=-=-=-=-printing parameters-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 plt.axis('equal')
-#plt.show()
+plt.show()

@@ -132,6 +132,7 @@ class photon: #introduces 3 variables: self.position, self.direction, self.veloc
 
 spacetime = space_time(20)
 photon = photon()
+earth = object(2e4,5)
 
 def main():
     run = True
@@ -149,6 +150,7 @@ def main():
 
         spacetime.bend()
         spacetime.draw(window)
+        earth.draw(window)
         plt.plot(photon.position[0],photon.position[1],'.',color = 'b')
         pygame.display.flip()
 

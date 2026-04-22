@@ -1,71 +1,74 @@
 import numpy as np
-from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
-# -----------------------
-# Parameters
-# -----------------------
-M = 1.0
-impact = 6.0  # impact parameter b
+# Black hole mass (supermassive scale)
+M = 1.0   # mass parameter (G=c=1)
 
-# Energy normalization (for photons, only ratio matters)
-E = 1.0
-L = impact
+def geodesic(lam, y):
+    t, r, phi, pt, pr, pphi = y
+    
+    # Metric terms
+    f = 1 - 2*M/r
+    
+    # Geodesic equations (Schwarzschild, equatorial plane)
+    dt = pt / f
+    dr = pr * f
+    dphi = pphi / r**2
+    
+    # Momentum derivatives
+    dpt = 0
+    dpphi = 0
+    
+    dpr = (
+        -M/(r**2*f)*pt**2
+        + M/(r**2*f)*pr**2
+        + (r - 3*M)/r**4 * pphi**2
+    )
+    
+    return [dt, dr, dphi, dpt, dpr, dpphi]
 
-# -----------------------
-# System: first-order form
-# y = [u, du/dphi]
-# -----------------------
-def geodesic(phi, y):
-    u, up = y  # u = 1/r
 
-    dudphi = up
-    duphi = -u + 3 * M * u**2
+# Initial conditions (incoming photon)
+r0 = 20
+phi0 = 0
+t0 = 0
 
-    return [dudphi, duphi]
+impact = 6.0     # impact parameter
 
-# -----------------------
-# Initial conditions
-# r0 large => nearly straight line
-# -----------------------
-r0 = 30.0
-u0 = 1 / r0
+pt0 = 1.0
+pphi0 = impact
 
-# initial slope from impact parameter
-up0 = -np.sqrt((1 / impact**2) - u0**2)
+# Null condition (lightlike)
+pr0 = -np.sqrt(pt0**2 - (1 - 2*M/r0)*(pphi0**2 / r0**2))
 
-y0 = [u0, up0]
+y0 = [t0, r0, phi0, pt0, pr0, pphi0]
 
-# integrate
+# Integrate
 sol = solve_ivp(
     geodesic,
-    [0, 10 * np.pi],
+    [0, 100],
     y0,
-    max_step=0.01,
-    rtol=1e-9
+    max_step=0.1,
+    rtol=1e-8
 )
 
-phi = sol.t
-u = sol.y[0]
-r = 1 / u
+r = sol.y[1]
+phi = sol.y[2]
 
-# -----------------------
 # Convert to Cartesian
-# -----------------------
 x = r * np.cos(phi)
 y = r * np.sin(phi)
 
-# -----------------------
 # Plot
-# -----------------------
-plt.figure(figsize=(6, 6))
-plt.plot(x, y, label="Photon path")
-plt.scatter([0], [0], s=200, label="Black Hole")
-plt.gca().set_aspect("equal")
+plt.figure(figsize=(6,6))
+plt.plot(x, y, label="Light path")
+plt.scatter([0],[0], s=200, label="Black Hole")
+plt.gca().set_aspect('equal')
+plt.legend()
 plt.xlabel("x")
 plt.ylabel("y")
-plt.title("Schwarzschild Photon Geodesic")
-plt.legend()
+plt.title("Photon Geodesic Around Supermassive Object")
 plt.show()
 
 r_s = 100
@@ -83,6 +86,7 @@ ax.set_ylabel('y')
 ax.set_zlabel('z')
 
 ax.plot_surface(x,y,z)
+plt.show()
 
 
 

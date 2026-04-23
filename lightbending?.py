@@ -9,6 +9,7 @@ width, height = 1200, 800
 window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("gravity simulation")
 centre = np.array([width/2, height/2], dtype = float)
+font = pygame.font.SysFont(None, 48)
 
 
 dt = 1*60*60*24                     #timestep for one frame/calculation
@@ -16,6 +17,13 @@ scale = 500 / (0.01 * 1.496e11)     # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
 c = 299792458
 
+scaled_width, scaled_height = width/scale, height/scale
+scaled_centre = centre /scale
+
+left   = (0 - centre[0]) / scale
+right  = (width - centre[0]) / scale
+top    = (0 - centre[1]) / scale
+bottom = (height - centre[1]) / scale
 
 class object:
     def __init__(self,window, mass):
@@ -30,7 +38,7 @@ blackhole = object(window, 1e35)
 
 
 class photon:                       #introduces 3 variables: self.position, self.direction, self.velocity
-    def __init__(self, window, position = np.array([-2e9, 0], dtype = float), direction = np.array([1,0], dtype = float)):
+    def __init__(self, window,mass, position = np.array([-2e9, 0], dtype = float), direction = np.array([1,0], dtype = float)):
         self.window = window
         self.position = np.array(position, dtype = float)
         self.direction = np.array(direction, dtype = float)
@@ -38,9 +46,22 @@ class photon:                       #introduces 3 variables: self.position, self
         self.velocity = 3e2 * np.array(self.direction/norm)
         self.trail = []
         self.max_trail_length = 100
+        self.out_of_bounds = False
+        self.mass = mass
+
+        self.r = np.sqrt(self.position[0] * self.position[0] + self.position[1] * self.position[1])
+        self.phi = np.arctan2(self.position[1], self.position[0])
+
+        dot = self.position[0] * self.velocity[0] + self.position[1] * self.velocity[1]
+        self.b = dot/(3e2 * np.sqrt(1-mass.r_s/self.r))
 
     def display(self):              #modifies 1 variable: self.position
-        self.position += self.velocity * dt
+        #self.position += self.velocity * dt
+        self.bend()
+
+        self.position[0] = self.r * np.cos(self.phi)
+        self.position[1] = self.r * np.sin(self.phi)
+
         self.trail.append(self.position.copy()) #store tail
         if len(self.trail) > self.max_trail_length:
             self.trail.pop(0)
@@ -54,31 +75,44 @@ class photon:                       #introduces 3 variables: self.position, self
 
         position = (int(self.position[0] * scale + centre[0]), int((self.position[1]) * scale + centre[1]))
         pygame.draw.circle(self.window, (255,0,0), position, 2)
-    
+
+    def bend(self):
+        r_s = self.mass.r_s
+        self.r += ((1 - r_s/self.r) * np.sqrt(1 - (1 - r_s/self.r) * self.b*self.b / (self.r*self.r))) * dt
+        self.phi += self.b * (1 - r_s/ self.r) / (self.r**self.r) * dt
+
     def check_boundary(self):
-        if self.position[0] > 2e9 or self.position[0] < -2e9 :
-            
+        dx = self.position[0]
+        dy = self.position[1]
+        r_s = self.mass.r_s
+        if (self.r * self.r) < (r_s*r_s + 0.15*r_s*r_s):
+            self.out_of_bounds = True
+        left   = (0 - centre[0]) / scale
+        right  = (width - centre[0]) / scale
+        top    = (0 - centre[1]) / scale
+        bottom = (height - centre[1]) / scale
+        if right < self.position[0] or self.position[0] < left-100 or self.position[1] < top-100 or self.position[1] > bottom+100:
+            self.out_of_bounds = True
 
 
 def make_photons(number=10, randomise = True):
-    photons = [] 
+    photons = []
     if not randomise:
         positions = np.linspace(-height/2, height/2, number)
         for i in range(number):
-            photons.append(photon(window, position = np.array([-2e9, positions[i] / scale], dtype = float)))
+            photons.append(photon(window, position = np.array([left, positions[i] / scale], dtype = float)))
     else:
         for i in range(number):
             positionx = random.randrange(int(-width/2),int(width/2)) / scale
             positiony = random.randrange(int(-height/2),int(height/2)) / scale
             direction = (random.uniform(-1,1), random.uniform(-1,1))
-            photons.append(photon(window, position = (positionx, positiony), direction = direction))
-
+            photons.append(photon(window,blackhole, position = (positionx, positiony), direction = direction))
     return photons
-
-photons = make_photons(300)
 
 
 def main():
+    num_photons, randomise = 100, 1 
+    photons = make_photons(num_photons, randomise)
     run = True
     clock = pygame.time.Clock()
     while run:
@@ -87,11 +121,18 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
         window.fill((0,0,0))
-        
-        
+
+
+        text = font.render(str(len(photons)), True, (255,255,255))
+        if len(photons) < num_photons:
+            photons.extend(make_photons(num_photons-len(photons), randomise))
         blackhole.display()
-        for i in range(len(photons)):
-            photons[i].display()
+        window.blit(text, (10, 10))
+        for photon in photons:
+            photon.check_boundary()
+        photons = [photon for photon in photons if not photon.out_of_bounds]
+        for photon in photons:
+            photon.display()
 
 
         pygame.display.flip()

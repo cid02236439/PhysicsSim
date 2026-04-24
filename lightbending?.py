@@ -12,7 +12,7 @@ centre = np.array([width/2, height/2], dtype = float)
 font = pygame.font.SysFont(None, 48)
 
 
-dt = 1*60*60*24                     #timestep for one frame/calculation
+dt = 100*60*60*24                     #timestep for one frame/calculation
 scale = 500 / (0.01 * 1.496e11)     # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
 c = 299792458
@@ -43,7 +43,7 @@ class photon:                       #introduces 3 variables: self.position, self
         self.position = np.array(position, dtype = float)
         self.direction = np.array(direction, dtype = float)
         norm = np.linalg.norm(self.direction)
-        self.velocity = 3e2 * np.array(self.direction/norm)
+        self.velocity = c * np.array(self.direction/norm)
         self.trail = []
         self.max_trail_length = 100
         self.out_of_bounds = False
@@ -52,8 +52,8 @@ class photon:                       #introduces 3 variables: self.position, self
         self.r = np.sqrt(self.position[0] * self.position[0] + self.position[1] * self.position[1])
         self.phi = np.arctan2(self.position[1], self.position[0])
 
-        dot = self.position[0] * self.velocity[0] + self.position[1] * self.velocity[1]
-        self.b = dot/(3e2 * np.sqrt(1-mass.r_s/self.r))
+        cross = self.position[0] * self.velocity[1] - self.position[1] * self.velocity[0]
+        self.b = cross / c
 
     def display(self):              #modifies 1 variable: self.position
         #self.position += self.velocity * dt
@@ -78,14 +78,18 @@ class photon:                       #introduces 3 variables: self.position, self
 
     def bend(self):
         r_s = self.mass.r_s
-        self.r += ((1 - r_s/self.r) * np.sqrt(1 - (1 - r_s/self.r) * self.b*self.b / (self.r*self.r))) * dt
-        self.phi += self.b * (1 - r_s/ self.r) / (self.r**self.r) * dt
+        inside = 1 - (1 - r_s/self.r) * self.b*self.b / (self.r*self.r)
+        if inside < 0:
+            self.out_of_bounds = True
+            return
+        self.r -= ((1 - r_s/self.r) * np.sqrt(inside)) * dt
+        self.phi += self.b * (1 - r_s/ self.r) / (self.r*self.r) * dt
 
     def check_boundary(self):
         dx = self.position[0]
         dy = self.position[1]
         r_s = self.mass.r_s
-        if (self.r * self.r) < (r_s*r_s + 0.15*r_s*r_s):
+        if (dx*dx + dy*dy) < (r_s*r_s + 0.15*r_s*r_s):
             self.out_of_bounds = True
         left   = (0 - centre[0]) / scale
         right  = (width - centre[0]) / scale
@@ -94,13 +98,12 @@ class photon:                       #introduces 3 variables: self.position, self
         if right < self.position[0] or self.position[0] < left-100 or self.position[1] < top-100 or self.position[1] > bottom+100:
             self.out_of_bounds = True
 
-
 def make_photons(number=10, randomise = True):
     photons = []
     if not randomise:
         positions = np.linspace(-height/2, height/2, number)
         for i in range(number):
-            photons.append(photon(window, position = np.array([left, positions[i] / scale], dtype = float)))
+            photons.append(photon(window,blackhole, position = np.array([left, positions[i] / scale], dtype = float)))
     else:
         for i in range(number):
             positionx = random.randrange(int(-width/2),int(width/2)) / scale
@@ -111,7 +114,7 @@ def make_photons(number=10, randomise = True):
 
 
 def main():
-    num_photons, randomise = 100, 1 
+    num_photons, randomise = 300, 0 
     photons = make_photons(num_photons, randomise)
     run = True
     clock = pygame.time.Clock()

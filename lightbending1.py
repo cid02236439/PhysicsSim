@@ -1,3 +1,10 @@
+"""
+THIS SIMULATION IS INCOMPLETE AND NOT PHYSICALLY ACCURATE.
+THE dλ IS TAKEN AS dt.
+THE GR EQUATIONS USED ARE FROM EFFECTIVE POTENTIAL FORMULATION WHICH WORKS FOR FAR PHOTONS I THINK.
+MAYBE COULD BE IMPROVED BY FIXING STEP INTEGRATION AND THE IF STATEMENT IN BEND FUNCTION. 
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
@@ -33,6 +40,8 @@ class object:
 
     def display(self):
         pygame.draw.circle(self.window, (255,255,255), centre, self.r_s * scale)
+        pygame.draw.circle(self.window, (100,100,100), centre, self.r_s * scale * 3, 1)
+        pygame.draw.circle(self.window, (100,100,100), centre, self.r_s * scale * 1.5, 1)
 
 blackhole = object(window, 1e35)
 
@@ -80,8 +89,9 @@ class photon:                       #introduces 3 variables: self.position, self
         inside = 1 - (1 - r_s/self.r) * self.b*self.b / (self.r*self.r)
 
         if inside < 0:
-            self.out_of_bounds = True
-            return
+            inside *= -1
+            self.sign *= -1
+
         self.r += ((1 - r_s/self.r) * np.sqrt(inside)) * dt * self.sign
         self.phi += self.b * (1 - r_s/ self.r) / (self.r*self.r) * dt
 
@@ -92,7 +102,7 @@ class photon:                       #introduces 3 variables: self.position, self
         dx = self.position[0]
         dy = self.position[1]
         r_s = self.mass.r_s
-        if (dx*dx + dy*dy) < (r_s*r_s + 0.15*r_s*r_s):
+        if (dx*dx + dy*dy) < (r_s*r_s + 0.1*r_s*r_s):
             self.out_of_bounds = True
         left   = (0 - centre[0]) / scale
         right  = (width - centre[0]) / scale
@@ -117,7 +127,7 @@ def make_photons(number=10, randomise = True):
 
 
 def main():
-    num_photons, randomise = 300, 1 
+    num_photons, randomise = 200, 0 
     photons = make_photons(num_photons, randomise)
     run = True
     clock = pygame.time.Clock()
@@ -129,10 +139,10 @@ def main():
         window.fill((0,0,0))
 
 
+        blackhole.display()
         text = font.render(str(len(photons)), True, (255,255,255))
         if len(photons) < num_photons:
             photons.extend(make_photons(num_photons-len(photons), randomise))
-        blackhole.display()
         window.blit(text, (10, 10))
         photons = [photon for photon in photons if not photon.out_of_bounds]
         for photon in photons:

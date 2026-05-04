@@ -14,7 +14,7 @@ centre = np.array([width/2, height/2])
 
 G = 6.67430e-11
 scale = 250 / (1 * 1.496e11) # 1 AU = 1.496e11 m, scale to fit in window
-dt = 1*60*60*24
+dt = 0.01*60*60*24
 
 #-=-=-=-=-=-=-=-=-general functions-=-=-=-=-=-=-=-=-=-=-=-=-
 

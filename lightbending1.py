@@ -127,7 +127,7 @@ def make_photons(number=10, randomise = True):
 
 
 def main():
-    num_photons, randomise = 200, 0 
+    num_photons, randomise = 200, 1 
     photons = make_photons(num_photons, randomise)
     run = True
     clock = pygame.time.Clock()

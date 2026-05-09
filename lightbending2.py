@@ -1,8 +1,9 @@
 """
 GR USED IN THE FORM OF GEODESIC EQUATIONS FOR SHWARZSCHILD METRIC TO GET THE "ACCELERATION" TERMS AND UPDATE THE "VELOCITY" TERMS
+Note that this sim uses time instead of the affine parameter when displaying the next step
 next steps:
-validating existing data
-
+    validating existing data
+    investigations
 """
 
 import numpy as np
@@ -18,7 +19,7 @@ pygame.display.set_caption("gravity simulation")
 centre = np.array([width / 2, height / 2], dtype=float)
 font = pygame.font.SysFont(None, 45)
 
-scale = 500 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
+scale = 1000 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
 c = 299792458
 dt = 100 * 60 * 60 * 24
@@ -143,25 +144,25 @@ class photon:
                 int(self.trail[i + 1][0] * scale + centre[0]),
                 int(self.trail[i + 1][1] * scale + centre[1]),
             )
-            pygame.draw.line(self.window, colour, pos1, pos2, 2)
+            pygame.draw.line(self.window, colour, pos1, pos2, 1)
 
-        position = (
-            int(self.position[0] * scale + centre[0]),
-            int((self.position[1]) * scale + centre[1]),
-        )
-        #pygame.draw.circle(self.window, (255, 0, 0), position, 2)
+        # position = (
+        #     int(self.position[0] * scale + centre[0]),
+        #     int((self.position[1]) * scale + centre[1]),
+        # )
+        # #pygame.draw.circle(self.window, (255, 0, 0), position, 2)
 
 
-def make_photons(number=10, size=1, randomise=True):
+def make_photons(number=10, xstart = 0, ysize=1, randomise=True):
     photons = []
     if not randomise:
-        positions = np.linspace(-height * size / 2, height * size / 2, number)
+        positions = np.linspace(-height * ysize / 2, height * ysize / 2, number)
         for i in range(number):
             photons.append(
                 photon(
                     window,
                     blackhole,
-                    position=np.array([left, positions[i] / scale], dtype=float),
+                    position=np.array([left + xstart * width / scale, positions[i] / scale], dtype=float),
                 )
             )
     else:
@@ -181,9 +182,11 @@ def make_photons(number=10, size=1, randomise=True):
 
 
 def main():
+    
+    num_photons, xstart, ysize, randomise = 200, 0, 0.65, 0
+
     i = 0
-    num_photons, size, randomise = 10, 0.5, 0
-    photons = make_photons(num_photons, size, randomise)
+    photons = make_photons(num_photons, xstart, ysize, randomise)
     run = True
     clock = pygame.time.Clock()
     while run:
@@ -199,8 +202,8 @@ def main():
         # if len(photons) < num_photons/2:
         #     photons.extend(make_photons(num_photons - len(photons), size, randomise))
 
-        if i == 30:
-            photons.extend(make_photons(num_photons, size, randomise))
+        if i == 90:
+            photons.extend(make_photons(num_photons, xstart, ysize, randomise))
             i = 0
 
         window.blit(text, (10, 10))

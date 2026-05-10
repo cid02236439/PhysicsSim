@@ -1,3 +1,10 @@
+"""
+#3
+First attempt at GR gravity; wanted to use spacetime as a physical 'thing' as the determining factor for the movement of light and objects.
+Obviously abandoned for unneccessary complexity and not so straghtforward approach
+Has a moving cooridnate grid though, so could be used for other applications
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame

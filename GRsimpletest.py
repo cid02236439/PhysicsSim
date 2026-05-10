@@ -1,3 +1,7 @@
+'''
+This file is only as a concept test to check validity of the equations/process
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp

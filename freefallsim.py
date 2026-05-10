@@ -1,3 +1,9 @@
+'''
+#1
+Starting point of this project.
+Basic free fall with angles implemented as well.
+'''
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation

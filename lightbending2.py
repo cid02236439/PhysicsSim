@@ -19,7 +19,7 @@ pygame.display.set_caption("gravity simulation")
 centre = np.array([width / 2, height / 2], dtype=float)
 font = pygame.font.SysFont(None, 45)
 
-scale = 1000 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
+scale = 500 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
 c = 299792458
 dt = 100 * 60 * 60 * 24

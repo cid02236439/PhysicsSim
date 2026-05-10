@@ -106,8 +106,8 @@ class photon:
 
         f = 1 - r_s / r
         self.dt = self.E / f
-        # dlambda = self.mass.dlambda
-        dlambda = dt / self.dt
+        dlambda = self.mass.dlambda
+        #dlambda = dt / self.dt
 
         d2theta = -2 * self.dr * self.dtheta / r
         d2r = (
@@ -154,10 +154,10 @@ class photon:
         # #pygame.draw.circle(self.window, (255, 0, 0), position, 2)
 
 
-def make_photons(number=10, xstart = 0, ysize=1, randomise=True):
+def make_photons(number=10, xstart = 0, ystart = 0, ysize=1, randomise=True):
     photons = []
     if not randomise:
-        positions = np.linspace(-height * ysize / 2, height * ysize / 2, number)
+        positions = np.linspace( (-ystart*height/2) - height * ysize / 2, (-ystart*height/2) + height * ysize / 2, number)
         for i in range(number):
             photons.append(
                 photon(
@@ -184,10 +184,15 @@ def make_photons(number=10, xstart = 0, ysize=1, randomise=True):
 
 def main():
     
-    num_photons, xstart, ysize, randomise = 200, 0, 0.65, 0
+    num_photons = 100
+    xstart = 0
+    ystart = 0.33
+    ysize = 0.005
+    randomise = 0
+    params = num_photons, xstart, ystart, ysize, randomise
 
     i = 0
-    photons = make_photons(num_photons, xstart, ysize, randomise)
+    photons = make_photons(*params)
     run = True
     clock = pygame.time.Clock()
     while run:
@@ -204,7 +209,7 @@ def main():
         #     photons.extend(make_photons(num_photons - len(photons), size, randomise))
 
         if i == 90:
-            photons.extend(make_photons(num_photons, xstart, ysize, randomise))
+            photons.extend(make_photons(*params))
             i = 0
 
         window.blit(text, (10, 10))

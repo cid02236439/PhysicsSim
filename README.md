@@ -35,7 +35,7 @@ This project implements various physics simulations to visualize and understand 
 - Explores photon trajectories in Schwarzschild geometry
 - Incomplete implementation (noted in source comments)
 
-**lightbending2.py** (claude.py)
+**lightbending2.py**
 - Advanced light bending simulation using General Relativity
 - Implements Schwarzschild metric for photon trajectory calculation
 - Black hole visualization with event horizon

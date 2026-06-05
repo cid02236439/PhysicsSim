@@ -5,6 +5,7 @@ Note that this sim uses time instead of the affine parameter when displaying the
 next steps:
     validating existing data
     investigations
+    kerr metric
 """
 
 import numpy as np
@@ -20,7 +21,7 @@ pygame.display.set_caption("gravity simulation")
 centre = np.array([width / 2, height / 2], dtype=float)
 font = pygame.font.SysFont(None, 45)
 
-scale = 500 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
+scale = 1000 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
 c = 299792458
 dt = 100 * 60 * 60 * 24
@@ -106,8 +107,8 @@ class photon:
 
         f = 1 - r_s / r
         self.dt = self.E / f
-        dlambda = self.mass.dlambda
-        #dlambda = dt / self.dt
+        # dlambda = self.mass.dlambda
+        dlambda = dt / self.dt
 
         d2theta = -2 * self.dr * self.dtheta / r
         d2r = (
@@ -136,7 +137,7 @@ class photon:
 
         for i in range(len(self.trail) - 1):  # tail fading algorithm
             fade = i / len(self.trail)
-            colour = (int(255 * fade), 0, 0)
+            colour = (int(255 * fade), 100, 0)
             pos1 = (
                 int(self.trail[i][0] * scale + centre[0]),
                 int(self.trail[i][1] * scale + centre[1]),
@@ -153,17 +154,39 @@ class photon:
         # )
         # #pygame.draw.circle(self.window, (255, 0, 0), position, 2)
 
+class source:
+    def __init__(self, position = [0.2, 0.5], number = 50, direction = 1):
+        self.position = position
+        self.number = number
+        self.direction = direction
+        self.photons = []
+        self.angles = np.linspace(-self.direction * np.pi, self.direction * np.pi, number)
 
-def make_photons(number=10, xstart = 0, ystart = 0, ysize=1, randomise=True):
+    def draw(self):
+        photon_position = left + self.position[0] * width / scale, (self.position[1] - 0.5) * height / scale
+        for angle in self.angles:
+            photon_direction = np.cos(angle), np.sin(angle)
+            self.photons.append(photon(window, blackhole, photon_position, photon_direction))
+        return self.photons
+
+
+def make_photons(number=10, xstart=0, ystart=0, ysize=1, randomise=True):
     photons = []
     if not randomise:
-        positions = np.linspace( (-ystart*height/2) - height * ysize / 2, (-ystart*height/2) + height * ysize / 2, number)
+        positions = np.linspace(
+            (-ystart * height / 2) - height * ysize / 2,
+            (-ystart * height / 2) + height * ysize / 2,
+            number,
+        )
         for i in range(number):
             photons.append(
                 photon(
                     window,
                     blackhole,
-                    position=np.array([left + xstart * width / scale, positions[i] / scale], dtype=float),
+                    position=np.array(
+                        [left + xstart * width / scale, positions[i] / scale],
+                        dtype=float,
+                    ),
                 )
             )
     else:
@@ -182,17 +205,24 @@ def make_photons(number=10, xstart = 0, ystart = 0, ysize=1, randomise=True):
     return photons
 
 
+rs = []
+dts = []
+source = source()
+
+
 def main():
-    
-    num_photons = 100
-    xstart = 0
-    ystart = 0.33
-    ysize = 0.005
-    randomise = 0
-    params = num_photons, xstart, ystart, ysize, randomise
+
+    # num_photons = 1
+    # xstart = 0
+    # ystart = 0.645
+    # ysize = 0.001
+    # randomise = 1
+    # params = num_photons, xstart, ystart, ysize, randomise
+    # photons = make_photons(*params)
 
     i = 0
-    photons = make_photons(*params)
+    
+    photons = source.draw()
     run = True
     clock = pygame.time.Clock()
     while run:
@@ -208,17 +238,26 @@ def main():
         # if len(photons) < num_photons/2:
         #     photons.extend(make_photons(num_photons - len(photons), size, randomise))
 
-        if i == 90:
-            photons.extend(make_photons(*params))
-            i = 0
+        # if i == 90:
+        #     photons.extend(make_photons(*params))
+        #     i = 0
+        i += 1
 
         window.blit(text, (10, 10))
         photons = [photon for photon in photons if not photon.out_of_bounds]
         for photon in photons:
             photon.display()
-        i += 1
+
+        rs.append(photons[-1].r)
+        dts.append(photons[-1].dt)
+
         pygame.display.flip()
     pygame.quit()
 
 
 main()
+
+# plt.plot(rs, dts)
+# plt.xlabel("r")
+# plt.ylabel("dt")
+# plt.show()

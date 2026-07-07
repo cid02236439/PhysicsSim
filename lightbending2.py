@@ -19,7 +19,7 @@ width, height = 1200, 800
 window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("gravity simulation")
 centre = np.array([width / 2, height / 2], dtype=float)
-font = pygame.font.SysFont(None, 45)
+font = pygame.font.SysFont(None, 30)
 
 scale = 1000 / (0.01 * 1.496e11)  # 1 AU = 1.496e11 m, scale to fit in window
 G = 6.67430e-11
@@ -137,7 +137,7 @@ class photon:
 
         for i in range(len(self.trail) - 1):  # tail fading algorithm
             fade = i / len(self.trail)
-            colour = (int(255 * fade), 100, 0)
+            colour = (int(255 * fade), 0, 0)
             pos1 = (
                 int(self.trail[i][0] * scale + centre[0]),
                 int(self.trail[i][1] * scale + centre[1]),
@@ -155,7 +155,9 @@ class photon:
         # #pygame.draw.circle(self.window, (255, 0, 0), position, 2)
 
 class source:
-    def __init__(self, position = [0.2, 0.5], number = 50, direction = 1):
+    def __init__(self, position = None, number = 20, direction = 1):
+        if position is None:
+            position = [random.uniform(0, 1), random.uniform(0, 1)]
         self.position = position
         self.number = number
         self.direction = direction
@@ -205,24 +207,32 @@ def make_photons(number=10, xstart=0, ystart=0, ysize=1, randomise=True):
     return photons
 
 
+def make_sources(number = 5):
+    return [source() for _ in range(number)]
+
+
+
 rs = []
 dts = []
-source = source()
+
 
 
 def main():
+    sources = make_sources()
+    photons =[]
 
-    # num_photons = 1
-    # xstart = 0
-    # ystart = 0.645
-    # ysize = 0.001
-    # randomise = 1
-    # params = num_photons, xstart, ystart, ysize, randomise
-    # photons = make_photons(*params)
+    num_photons = 10
+    xstart = 0
+    ystart = 0.645
+    ysize = 0.001
+    randomise = 0
+    params = num_photons, xstart, ystart, ysize, randomise
+    #photons.extend(make_photons(*params))
 
     i = 0
-    
-    photons = source.draw()
+    # source1 = source()
+    # photons.extend(source1.draw())
+
     run = True
     clock = pygame.time.Clock()
     while run:
@@ -230,26 +240,38 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+        
+        keys = pygame.key.get_pressed()
+
+        fps = clock.get_fps()
+        num_of_photons = font.render(f"photons: {len(photons)}", True, (255, 255, 255))
+        display_fps = font.render(f"FPS: {fps:.1f}", True, (255,255,255))
         window.fill((0, 0, 0))
 
         blackhole.display()
-        text = font.render(str(len(photons)), True, (255, 255, 255))
 
         # if len(photons) < num_photons/2:
         #     photons.extend(make_photons(num_photons - len(photons), size, randomise))
 
-        # if i == 90:
-        #     photons.extend(make_photons(*params))
+        # if i == 60:
+        #     photons.extend(source1.draw())
+        #     #photons.extend(make_photons(*params))
         #     i = 0
+        # i += 1
+        if i == 60:
+            for sourcex in sources:
+                photons.extend(sourcex.draw())
+            i = 0
         i += 1
 
-        window.blit(text, (10, 10))
+        window.blit(num_of_photons, (10, 10))
+        window.blit(display_fps, (1100,770))
         photons = [photon for photon in photons if not photon.out_of_bounds]
         for photon in photons:
             photon.display()
 
-        rs.append(photons[-1].r)
-        dts.append(photons[-1].dt)
+        # rs.append(photons[-1].r)
+        # dts.append(photons[-1].dt)
 
         pygame.display.flip()
     pygame.quit()
